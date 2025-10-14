@@ -1,5 +1,6 @@
 
 #![allow(dead_code)]
+use core::fmt;
 use std::ops::{Add, Div, Mul, Sub};
 
 use crate::utils::xgcd;
@@ -72,6 +73,10 @@ impl FiniteField {
     FiniteField { p: p }
   }
 
+  pub fn new_element(&self, value: u64) -> FieldElement {
+    FieldElement { value: value, field: *self }
+  }
+
   pub fn modulus(&self) -> u64 {
     self.p
   }
@@ -120,8 +125,8 @@ impl FiniteField {
   }
 
   pub fn generator(&self) -> FieldElement {
-    assert!(self.p == 2147483647);
-    FieldElement { value: 7, field: *self }
+    assert!(self.p == 998244353);
+    FieldElement { value: 3, field: *self }
   }
 
   // fast modular exponentiation based on Applied Cryptography book by Bruce Schneier
@@ -141,15 +146,14 @@ impl FiniteField {
   }
 
   pub fn prim_nth_root(&self, n: u64) -> FieldElement {
-    assert!(self.p == 2147483647);
-    assert!(n <= 1 << 31 && (n & (n-1)) == 0);
-    let mut root = self.generator();
-    let mut order = 1 << 31;
-    while order != n {
-      root = self.exp(&root, 2);
-      order /= 2;
-    }
-    root
+    assert!(self.p == 998244353);
+    assert!((n & (n-1)) == 0, "n must be a power of two");
+    assert!(n <= (1 << 23), "n > 2^23 not supported by this modulus");
+
+    // w_n = g^((p-1)/n)
+    let g = self.generator();
+    let exp = (self.p - 1) / n; 
+    self.exp(&g, exp)
   }
 
   pub fn sample(&self, salt: &[u8]) -> FieldElement {
@@ -160,4 +164,26 @@ impl FiniteField {
     }
     acc
   }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+  const P: u64 = 998244353;
+
+  #[test]
+  pub fn test_exp() {
+    let ff = FiniteField::new(P);
+    let e = ff.new_element(3);
+    assert_eq!(ff.exp(&e, 2), ff.new_element(9));
+  }
+
+  #[test]
+  pub fn test_prim_nth_root() {
+    let ff = FiniteField::new(P);
+    let root = ff.prim_nth_root(8);
+    assert!(ff.exp(&root, 8) == ff.one());
+  }
+
 }
