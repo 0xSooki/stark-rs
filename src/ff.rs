@@ -1,7 +1,7 @@
 
 #![allow(dead_code)]
 use core::fmt;
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use crate::utils::xgcd;
 
@@ -22,8 +22,8 @@ impl PartialEq for FiniteField {
 
 #[derive(Debug, Clone, Copy)]
 pub struct FieldElement {
-  value: u64,
-  field: FiniteField
+  pub value: u64,
+  pub field: FiniteField
 }
 
 impl Add for FieldElement {
@@ -56,6 +56,14 @@ impl Div for FieldElement {
   fn div(self, rhs: Self) -> Self::Output {
       self.field.div(&self, &rhs)
   }
+}
+
+impl Neg for FieldElement {
+    type Output = FieldElement;
+
+    fn neg(self) -> Self::Output {
+      self.field.neg(&self)
+    }
 }
 
 impl PartialEq for FieldElement {
@@ -124,7 +132,7 @@ impl FiniteField {
     FieldElement { value: val as u64, field: *self }
   }
 
-  pub fn generator(&self) -> FieldElement {
+  pub fn g(&self) -> FieldElement {
     assert!(self.p == 998244353);
     FieldElement { value: 3, field: *self }
   }
@@ -149,9 +157,8 @@ impl FiniteField {
     assert!(self.p == 998244353);
     assert!((n & (n-1)) == 0, "n must be a power of two");
     assert!(n <= (1 << 23), "n > 2^23 not supported by this modulus");
-
     // w_n = g^((p-1)/n)
-    let g = self.generator();
+    let g = self.g();
     let exp = (self.p - 1) / n; 
     self.exp(&g, exp)
   }
