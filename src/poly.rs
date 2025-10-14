@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Neg, Sub};
+use std::{cmp::max, ops::{Add, Mul, Neg, Sub}};
 
 use crate::ff::FieldElement;
 
@@ -21,7 +21,21 @@ impl Add for Polynomial {
     type Output = Polynomial;
 
     fn add(self, rhs: Self) -> Self::Output {
-        todo!()
+        if self.deg() == -1 {
+          return rhs;
+        }
+        if rhs.deg() == -1 {
+          return self;
+        }
+        let mut coeffs: Vec<FieldElement> = Vec::with_capacity(max(self.coeffs.len(), rhs.coeffs.len()));
+        coeffs.fill(self.coeffs[0].field.zero());
+        for (i, v) in self.coeffs.into_iter().enumerate() {
+          coeffs[i] = coeffs[i] + v;
+        }
+        for (i, v) in rhs.coeffs.into_iter().enumerate() {
+          coeffs[i] = coeffs[i] + v;
+        }
+        Polynomial {coeffs:coeffs}
     }
 }
 
