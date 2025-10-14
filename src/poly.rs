@@ -20,7 +20,7 @@ impl Neg for Polynomial {
 impl Add for Polynomial {
     type Output = Polynomial;
 
-    fn add(self, rhs: Self) -> Self::Output {
+    fn add(self, rhs: Self) -> Self {
         if self.deg() == -1 {
           return rhs;
         }
@@ -28,12 +28,10 @@ impl Add for Polynomial {
           return self;
         }
         let mut coeffs: Vec<FieldElement> = Vec::with_capacity(max(self.coeffs.len(), rhs.coeffs.len()));
-        coeffs.fill(self.coeffs[0].field.zero());
-        for (i, v) in self.coeffs.into_iter().enumerate() {
-          coeffs[i] = coeffs[i] + v;
-        }
-        for (i, v) in rhs.coeffs.into_iter().enumerate() {
-          coeffs[i] = coeffs[i] + v;
+        for i in 0..coeffs.len() {
+          let left = self.coeffs.get(i).copied().unwrap_or_else(|| self.coeffs[0].field.zero());
+          let right = rhs.coeffs.get(i).copied().unwrap_or_else(|| rhs.coeffs[0].field.zero());
+          coeffs.push(left+right);
         }
         Polynomial {coeffs:coeffs}
     }
@@ -43,7 +41,7 @@ impl Sub for Polynomial {
     type Output = Polynomial;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        todo!()
+        self.add(-rhs)
     }
 }
 
@@ -51,7 +49,22 @@ impl Mul for Polynomial {
     type Output = Polynomial;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        todo!()
+        if self.coeffs == vec![] && rhs.coeffs == vec![] {
+          return Polynomial { coeffs: vec![] };
+        }
+
+        let mut coeffs = vec![self.coeffs[0].field.zero(); self.coeffs.len() + rhs.coeffs.len() - 1];
+
+        for (i, &a) in self.coeffs.iter().enumerate() {
+          if a.value == 0 {
+            continue;
+          } else {
+            for (j, &b) in rhs.coeffs.iter().enumerate() {
+              coeffs[i+j] = coeffs[i+j] + a * b
+            }
+          }
+        }
+        return Polynomial {coeffs:coeffs}
     }
 }
 
