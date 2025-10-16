@@ -143,6 +143,35 @@ impl Polynomial {
         (Polynomial { coeffs: q }, r)
     }
 
+    pub fn intdiv(numer: &Polynomial, denom: &Polynomial) -> Polynomial {
+        let (q, r) = Self::div(numer, denom);
+        assert!(r.is_zero());
+        q
+    }
+
+    pub fn modulo(numer: &Polynomial, denom: &Polynomial) -> Polynomial {
+        let (q, r) = Self::div(numer, denom);
+        r
+    }
+
+    pub fn exp(base: &Polynomial, exp: u64) -> Polynomial {
+        let mut exp = exp;
+        if base.is_zero() {
+            return Polynomial {coeffs: vec![] };
+        }
+        if exp == 0 {
+            return Polynomial {coeffs: vec![base.coeffs[0].field.zero()] }; 
+        }
+        let mut acc = Polynomial {coeffs: vec![base.coeffs[0].field.one()] };
+        while exp != 0 {
+            if (exp & 1) == 1 {
+                acc = Self::mul(&acc, base);
+            }
+            exp >>= 1;
+        }
+        acc
+    }
+
     pub fn is_zero(&self) -> bool {
         self.deg() == -1
     }
