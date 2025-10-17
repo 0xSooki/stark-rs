@@ -1,5 +1,14 @@
 #![allow(unused)]
 
+mod sub;
+pub mod eval;
+pub mod interpolate;
+pub mod add;
+pub mod mul;
+pub mod poly;
+pub mod div;
+pub mod exp;
+
 use std::{cmp::max, ops::Add};
 
 use crate::ff::{FieldElement, FiniteField};
