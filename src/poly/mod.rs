@@ -6,3 +6,4 @@ pub mod interpolate;
 pub mod mul;
 pub mod poly;
 pub mod sub;
+pub use poly::Polynomial;
