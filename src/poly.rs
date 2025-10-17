@@ -1,13 +1,13 @@
 #![allow(unused)]
 
-use std::cmp::max;
+use std::{cmp::max, ops::Add};
 
 use crate::ff::{FieldElement, FiniteField};
 
 #[derive(Debug, Clone)]
 pub struct Polynomial {
     coeffs: Vec<FieldElement>,
-    field: FiniteField
+    field: FiniteField,
 }
 
 impl PartialEq for Polynomial {
@@ -22,7 +22,10 @@ impl PartialEq for Polynomial {
 
 impl Polynomial {
     pub fn new(coeffs: Vec<FieldElement>, field: FiniteField) -> Polynomial {
-        Polynomial { coeffs: coeffs, field: field }
+        Polynomial {
+            coeffs: coeffs,
+            field: field,
+        }
     }
 
     pub fn deg(&self) -> i128 {
@@ -63,12 +66,16 @@ impl Polynomial {
                 .unwrap_or_else(|| rhs.coeffs[0].field.zero());
             coeffs[i] = left + right;
         }
-        Polynomial { coeffs: coeffs, field: lhs.field }
+        Polynomial {
+            coeffs: coeffs,
+            field: lhs.field,
+        }
     }
 
     pub fn neg(poly: &Polynomial) -> Polynomial {
         Polynomial {
-            coeffs: poly.coeffs.iter().map(|&c| -c).collect(), field: poly.field
+            coeffs: poly.coeffs.iter().map(|&c| -c).collect(),
+            field: poly.field,
         }
     }
 
@@ -94,12 +101,18 @@ impl Polynomial {
                 .unwrap_or_else(|| rhs.coeffs[0].field.zero());
             coeffs[i] = left - right;
         }
-        Polynomial { coeffs: coeffs, field: lhs.field }
+        Polynomial {
+            coeffs: coeffs,
+            field: lhs.field,
+        }
     }
 
     pub fn mul(lhs: &Polynomial, rhs: &Polynomial) -> Polynomial {
         if lhs.is_zero() || rhs.is_zero() {
-            return Polynomial { coeffs: vec![], field: lhs.field };
+            return Polynomial {
+                coeffs: vec![],
+                field: lhs.field,
+            };
         }
 
         let mut coeffs = vec![lhs.coeffs[0].field.zero(); lhs.coeffs.len() + rhs.coeffs.len() - 1];
@@ -113,7 +126,10 @@ impl Polynomial {
                 }
             }
         }
-        return Polynomial { coeffs: coeffs, field: lhs.field };
+        return Polynomial {
+            coeffs: coeffs,
+            field: lhs.field,
+        };
     }
 
     pub fn div(numer: &Polynomial, denom: &Polynomial) -> (Polynomial, Polynomial) {
@@ -121,7 +137,13 @@ impl Polynomial {
             panic!("No division by zero")
         }
         if numer.deg() < denom.deg() {
-            return (Polynomial { coeffs: vec![], field: numer.field }, numer.clone());
+            return (
+                Polynomial {
+                    coeffs: vec![],
+                    field: numer.field,
+                },
+                numer.clone(),
+            );
         }
 
         let field = denom.coeffs[0].field;
@@ -129,9 +151,6 @@ impl Polynomial {
         let mut r = numer.clone();
 
         while r.deg() >= denom.deg() {
-            if r.deg() < denom.deg() {
-                break;
-            }
             let coeff = r.leading_coeff() / denom.leading_coeff();
             let shift = (r.deg() - denom.deg()) as usize;
             let mut subtractee_coeffs = vec![field.zero(); shift];
@@ -141,7 +160,13 @@ impl Polynomial {
             q[shift] = coeff;
             r = Polynomial::sub(&r, &subtractee);
         }
-        (Polynomial { coeffs: q, field: numer.field }, r)
+        (
+            Polynomial {
+                coeffs: q,
+                field: numer.field,
+            },
+            r,
+        )
     }
 
     pub fn intdiv(numer: &Polynomial, denom: &Polynomial) -> Polynomial {
@@ -158,24 +183,47 @@ impl Polynomial {
     pub fn exp(base: &Polynomial, exp: u64) -> Polynomial {
         let mut exp = exp;
         if exp == 0 {
-            return Polynomial { coeffs: vec![base.field.one()], field: base.field };
+            return Polynomial {
+                coeffs: vec![base.field.one()],
+                field: base.field,
+            };
         }
         if base.is_zero() {
-            return Polynomial { coeffs: vec![], field: base.field };
+            return Polynomial {
+                coeffs: vec![],
+                field: base.field,
+            };
         }
-        let mut acc = Polynomial { coeffs: vec![base.field.one()], field: base.field };
+        let mut result = Polynomial {
+            coeffs: vec![base.field.one()],
+            field: base.field,
+        };
+        let mut bpower = base.clone();
         while exp != 0 {
             if (exp & 1) == 1 {
-                acc = Self::mul(&acc, base);
+                result = Self::mul(&result, base);
             }
+            bpower = Self::mul(&bpower, &bpower);
             exp >>= 1;
         }
-        acc
+        result
     }
 
-    pub fn eval(poly: &Self, x: u64) {
-        let mut xi = poly.coeffs[0];
-        // TODO: Complete implementation
+    pub fn eval(poly: &Self, x: &FieldElement) -> FieldElement {
+        let mut xi = x.field.one();
+        let mut val = x.field.zero();
+        for c in &poly.coeffs {
+            val = val + (*c) * xi;
+            xi = xi * (*x);
+        }
+        val
+    }
+
+    fn assert_same_field(p1: &Polynomial, p2: &Polynomial) {
+        assert_eq!(
+            p1.field, p2.field,
+            "Polynomials must be from the same field"
+        );
     }
 
     pub fn is_zero(&self) -> bool {
@@ -247,20 +295,26 @@ mod tests {
         let linear = linear_poly(&field, 1, 2);
         assert_eq!(linear.deg(), 1);
 
-        let with_zeros = Polynomial::new(vec![
-            field.new_element(1),
-            field.new_element(2),
-            field.zero(),
-            field.zero(),
-        ], field);
+        let with_zeros = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(2),
+                field.zero(),
+                field.zero(),
+            ],
+            field,
+        );
         assert_eq!(with_zeros.deg(), 1);
 
-        let cubic = Polynomial::new(vec![
-            field.new_element(1),
-            field.new_element(0),
-            field.new_element(0),
-            field.new_element(7),
-        ], field);
+        let cubic = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(0),
+                field.new_element(0),
+                field.new_element(7),
+            ],
+            field,
+        );
         assert_eq!(cubic.deg(), 3);
     }
 
@@ -290,12 +344,15 @@ mod tests {
         let linear = linear_poly(&field, 3, 5);
         assert_eq!(linear.leading_coeff().value, 5);
 
-        let with_zeros = Polynomial::new(vec![
-            field.new_element(1),
-            field.new_element(2),
-            field.zero(),
-            field.zero(),
-        ], field);
+        let with_zeros = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(2),
+                field.zero(),
+                field.zero(),
+            ],
+            field,
+        );
         assert_eq!(with_zeros.leading_coeff().value, 2);
     }
 
@@ -368,11 +425,14 @@ mod tests {
         let field = setup_field();
 
         let short = constant_poly(&field, 5);
-        let long = Polynomial::new(vec![
-            field.new_element(1),
-            field.new_element(2),
-            field.new_element(3),
-        ], field);
+        let long = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(2),
+                field.new_element(3),
+            ],
+            field,
+        );
 
         let result = Polynomial::add(&short, &long);
         assert_eq!(result.coeffs.len(), 3);
@@ -495,11 +555,10 @@ mod tests {
     fn test_multiplication_with_zero_coefficients() {
         let field = setup_field();
 
-        let p1 = Polynomial::new(vec![
-            field.new_element(1),
-            field.zero(),
-            field.new_element(3),
-        ], field);
+        let p1 = Polynomial::new(
+            vec![field.new_element(1), field.zero(), field.new_element(3)],
+            field,
+        );
         let p2 = constant_poly(&field, 2);
 
         let result = Polynomial::mul(&p1, &p2);
@@ -566,16 +625,19 @@ mod tests {
     }
 
     #[test]
-    fn test_polynomial_coefficient_access() {
+    fn test_polynomial_coefficient_resultess() {
         let field = setup_field();
 
         let short = constant_poly(&field, 3);
-        let long = Polynomial::new(vec![
-            field.new_element(1),
-            field.new_element(2),
-            field.new_element(3),
-            field.new_element(4),
-        ], field);
+        let long = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(2),
+                field.new_element(3),
+                field.new_element(4),
+            ],
+            field,
+        );
 
         let result = Polynomial::add(&short, &long);
 
@@ -607,13 +669,16 @@ mod tests {
     fn test_polynomial_normalization() {
         let field = setup_field();
 
-        let p_with_trailing_zeros = Polynomial::new(vec![
-            field.new_element(1),
-            field.new_element(2),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-        ], field);
+        let p_with_trailing_zeros = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(2),
+                field.zero(),
+                field.zero(),
+                field.zero(),
+            ],
+            field,
+        );
 
         assert_eq!(p_with_trailing_zeros.deg(), 1);
         assert_eq!(p_with_trailing_zeros.leading_coeff().value, 2);
@@ -661,11 +726,14 @@ mod tests {
     fn test_polynomial_degree_after_operations() {
         let field = setup_field();
 
-        let p1 = Polynomial::new(vec![
-            field.new_element(1),
-            field.new_element(2),
-            field.new_element(3),
-        ], field);
+        let p1 = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(2),
+                field.new_element(3),
+            ],
+            field,
+        );
         let p2 = Polynomial::new(vec![field.new_element(4), field.new_element(5)], field);
 
         let sum = Polynomial::add(&p1, &p2);
@@ -679,11 +747,14 @@ mod tests {
     fn test_division_basic() {
         let field = setup_field();
 
-        let dividend = Polynomial::new(vec![
-            field.new_element(2),
-            field.new_element(3),
-            field.new_element(1),
-        ], field);
+        let dividend = Polynomial::new(
+            vec![
+                field.new_element(2),
+                field.new_element(3),
+                field.new_element(1),
+            ],
+            field,
+        );
         let divisor = Polynomial::new(vec![field.new_element(1), field.new_element(1)], field);
 
         let (quotient, remainder) = Polynomial::div(&dividend, &divisor);
@@ -698,11 +769,14 @@ mod tests {
     fn test_division_with_remainder() {
         let field = setup_field();
 
-        let dividend = Polynomial::new(vec![
-            field.new_element(1),
-            field.new_element(0),
-            field.new_element(1),
-        ], field);
+        let dividend = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(0),
+                field.new_element(1),
+            ],
+            field,
+        );
         let divisor = Polynomial::new(vec![field.new_element(1), field.new_element(1)], field);
 
         let (quotient, remainder) = Polynomial::div(&dividend, &divisor);
@@ -716,11 +790,14 @@ mod tests {
     fn test_division_by_constant() {
         let field = setup_field();
 
-        let dividend = Polynomial::new(vec![
-            field.new_element(2),
-            field.new_element(4),
-            field.new_element(6),
-        ], field);
+        let dividend = Polynomial::new(
+            vec![
+                field.new_element(2),
+                field.new_element(4),
+                field.new_element(6),
+            ],
+            field,
+        );
         let divisor = constant_poly(&field, 2);
 
         let (quotient, remainder) = Polynomial::div(&dividend, &divisor);
@@ -737,11 +814,14 @@ mod tests {
         let field = setup_field();
 
         let dividend = linear_poly(&field, 1, 1);
-        let divisor = Polynomial::new(vec![
-            field.new_element(1),
-            field.new_element(0),
-            field.new_element(1),
-        ], field);
+        let divisor = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(0),
+                field.new_element(1),
+            ],
+            field,
+        );
 
         let (quotient, remainder) = Polynomial::div(&dividend, &divisor);
 
@@ -790,12 +870,15 @@ mod tests {
     fn test_division_verification() {
         let field = setup_field();
 
-        let dividend = Polynomial::new(vec![
-            field.new_element(5),
-            field.new_element(7),
-            field.new_element(3),
-            field.new_element(1),
-        ], field);
+        let dividend = Polynomial::new(
+            vec![
+                field.new_element(5),
+                field.new_element(7),
+                field.new_element(3),
+                field.new_element(1),
+            ],
+            field,
+        );
         let divisor = Polynomial::new(vec![field.new_element(2), field.new_element(1)], field);
 
         let (quotient, remainder) = Polynomial::div(&dividend, &divisor);
@@ -810,12 +893,15 @@ mod tests {
     fn test_division_high_degree() {
         let field = setup_field();
 
-        let dividend = Polynomial::new(vec![
-            field.new_element(1),
-            field.new_element(1),
-            field.new_element(1),
-            field.new_element(1),
-        ], field);
+        let dividend = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(1),
+                field.new_element(1),
+                field.new_element(1),
+            ],
+            field,
+        );
         let divisor = linear_poly(&field, 1, 1);
 
         let (quotient, remainder) = Polynomial::div(&dividend, &divisor);
