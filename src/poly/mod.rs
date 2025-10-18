@@ -18,7 +18,7 @@ impl PartialEq for Polynomial {
         if self.deg() == -1 {
             return true;
         }
-        
+
         let max_degree = self.deg() as usize;
         for i in 0..=max_degree {
             let self_coeff = if i < self.coeffs.len() {
@@ -94,14 +94,12 @@ impl Polynomial {
 }
 
 mod add;
-mod sub;
-mod mul;
 mod div;
-mod exp;
 mod eval;
+mod exp;
 mod interpolate;
-
-
+mod mul;
+mod sub;
 
 #[cfg(test)]
 mod tests {
@@ -246,7 +244,11 @@ mod tests {
         assert_ne!(poly1, poly3);
 
         let poly4 = Polynomial::new(
-            vec![field.new_element(1), field.new_element(2), field.new_element(0)],
+            vec![
+                field.new_element(1),
+                field.new_element(2),
+                field.new_element(0),
+            ],
             field,
         );
         assert_eq!(poly1, poly4);

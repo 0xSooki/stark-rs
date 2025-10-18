@@ -1,3 +1,5 @@
+use std::ops::Mul;
+
 use super::Polynomial;
 
 impl Polynomial {
@@ -24,6 +26,14 @@ impl Polynomial {
             coeffs: coeffs,
             field: lhs.field,
         };
+    }
+}
+
+impl Mul<&Polynomial> for &Polynomial {
+    type Output = Polynomial;
+
+    fn mul(self, rhs: &Polynomial) -> Self::Output {
+        Polynomial::mul(self, rhs)
     }
 }
 
@@ -105,7 +115,11 @@ mod tests {
         let field = setup_field();
         let poly1 = constant_poly(&field, 2);
         let poly2 = Polynomial::new(
-            vec![field.new_element(1), field.new_element(0), field.new_element(1)],
+            vec![
+                field.new_element(1),
+                field.new_element(0),
+                field.new_element(1),
+            ],
             field,
         );
 
@@ -120,7 +134,11 @@ mod tests {
     fn test_mul_commutativity() {
         let field = setup_field();
         let poly1 = Polynomial::new(
-            vec![field.new_element(1), field.new_element(2), field.new_element(3)],
+            vec![
+                field.new_element(1),
+                field.new_element(2),
+                field.new_element(3),
+            ],
             field,
         );
         let poly2 = linear_poly(&field, 4, 5);
@@ -163,11 +181,19 @@ mod tests {
     fn test_mul_sparse() {
         let field = setup_field();
         let poly1 = Polynomial::new(
-            vec![field.new_element(1), field.new_element(0), field.new_element(2)],
+            vec![
+                field.new_element(1),
+                field.new_element(0),
+                field.new_element(2),
+            ],
             field,
         );
         let poly2 = Polynomial::new(
-            vec![field.new_element(3), field.new_element(0), field.new_element(4)],
+            vec![
+                field.new_element(3),
+                field.new_element(0),
+                field.new_element(4),
+            ],
             field,
         );
 

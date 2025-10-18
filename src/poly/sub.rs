@@ -1,4 +1,4 @@
-use std::cmp::max;
+use std::{cmp::max, ops::Sub};
 
 use crate::ff::FieldElement;
 
@@ -31,6 +31,14 @@ impl Polynomial {
             coeffs: coeffs,
             field: lhs.field,
         }
+    }
+}
+
+impl Sub<&Polynomial> for &Polynomial {
+    type Output = Polynomial;
+
+    fn sub(self, rhs: &Polynomial) -> Self::Output {
+        Polynomial::sub(self, rhs)
     }
 }
 
@@ -129,7 +137,11 @@ mod tests {
     fn test_sub_anticommutativity() {
         let field = setup_field();
         let poly1 = Polynomial::new(
-            vec![field.new_element(1), field.new_element(2), field.new_element(3)],
+            vec![
+                field.new_element(1),
+                field.new_element(2),
+                field.new_element(3),
+            ],
             field,
         );
         let poly2 = linear_poly(&field, 4, 5);

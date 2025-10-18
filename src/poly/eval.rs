@@ -78,7 +78,11 @@ mod tests {
     fn test_eval_zero_point() {
         let field = setup_field();
         let poly = Polynomial::new(
-            vec![field.new_element(5), field.new_element(7), field.new_element(9)],
+            vec![
+                field.new_element(5),
+                field.new_element(7),
+                field.new_element(9),
+            ],
             field,
         );
         let x = field.new_element(0);
@@ -128,12 +132,17 @@ mod tests {
     fn test_eval_consistency() {
         let field = setup_field();
         let poly = Polynomial::new(
-            vec![field.new_element(2), field.new_element(3), field.new_element(1)],
+            vec![
+                field.new_element(2),
+                field.new_element(3),
+                field.new_element(1),
+            ],
             field,
         );
         let x = field.new_element(5);
 
-        let manual = field.new_element(2) + field.new_element(3) * field.new_element(5)
+        let manual = field.new_element(2)
+            + field.new_element(3) * field.new_element(5)
             + field.new_element(1) * field.new_element(25);
         let eval_result = poly.eval(&x);
 

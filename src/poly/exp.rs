@@ -1,3 +1,5 @@
+use std::ops::BitXor;
+
 use super::Polynomial;
 
 impl Polynomial {
@@ -31,6 +33,14 @@ impl Polynomial {
     }
 }
 
+impl BitXor<u64> for &Polynomial {
+    type Output = Polynomial;
+
+    fn bitxor(self, rhs: u64) -> Self::Output {
+        Polynomial::exp(self, rhs)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -59,7 +69,7 @@ mod tests {
         let field = setup_field();
         let poly = linear_poly(&field, 1, 2);
 
-        let result = Polynomial::exp(&poly, 0);
+        let result = &poly ^ 0;
         assert_eq!(result.deg(), 0);
         assert_eq!(result.coeffs[0].value, 1);
     }

@@ -1,6 +1,6 @@
 use super::Polynomial;
 use crate::ff::FieldElement;
-use std::cmp::max;
+use std::{cmp::max, ops::Add};
 
 impl Polynomial {
     pub fn add(lhs: &Polynomial, rhs: &Polynomial) -> Polynomial {
@@ -29,6 +29,14 @@ impl Polynomial {
             coeffs: coeffs,
             field: lhs.field,
         }
+    }
+}
+
+impl Add<&Polynomial> for &Polynomial {
+    type Output = Polynomial;
+
+    fn add(self, rhs: &Polynomial) -> Self::Output {
+        Polynomial::add(self, rhs)
     }
 }
 
@@ -61,7 +69,7 @@ mod tests {
         let poly = linear_poly(&field, 1, 2);
         let zero = zero_poly(&field);
 
-        let result = Polynomial::add(&poly, &zero);
+        let result = &poly + &zero;
         assert_eq!(result, poly);
 
         let result2 = Polynomial::add(&zero, &poly);
@@ -134,7 +142,11 @@ mod tests {
     fn test_add_commutativity() {
         let field = setup_field();
         let poly1 = Polynomial::new(
-            vec![field.new_element(1), field.new_element(2), field.new_element(3)],
+            vec![
+                field.new_element(1),
+                field.new_element(2),
+                field.new_element(3),
+            ],
             field,
         );
         let poly2 = linear_poly(&field, 4, 5);

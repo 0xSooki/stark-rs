@@ -1,3 +1,5 @@
+use std::ops::{Div, Rem};
+
 use super::Polynomial;
 
 impl Polynomial {
@@ -50,6 +52,22 @@ impl Polynomial {
     }
 }
 
+impl Div<&Polynomial> for &Polynomial {
+    type Output = (Polynomial, Polynomial);
+
+    fn div(self, rhs: &Polynomial) -> Self::Output {
+        Polynomial::div(self, rhs)
+    }
+}
+
+impl Rem<&Polynomial> for &Polynomial {
+    type Output = Polynomial;
+
+    fn rem(self, rhs: &Polynomial) -> Self::Output {
+        Polynomial::modulo(self, rhs)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -87,7 +105,7 @@ mod tests {
         );
         let divisor = Polynomial::new(vec![field.new_element(1), field.new_element(1)], field);
 
-        let (quotient, remainder) = Polynomial::div(&dividend, &divisor);
+        let (quotient, remainder) = &dividend / &divisor;
 
         assert_eq!(quotient.deg(), 1);
         assert_eq!(quotient.coeffs[0].value, 2);
