@@ -95,6 +95,23 @@ impl Polynomial {
         acc
     }
 
+    // computer f(c*X)
+    pub fn scale(&self, factor: &FieldElement) -> Polynomial {
+        let coeffs: Vec<FieldElement> = self
+            .coeffs
+            .iter()
+            .enumerate()
+            .map(|(i, &coeff)| {
+                let power = self.field.exp(factor, i as u64);
+                &power * &coeff
+            })
+            .collect();
+        Polynomial {
+            coeffs: coeffs,
+            field: self.field,
+        }
+    }
+
     fn assert_same_field(p1: &Polynomial, p2: &Polynomial) {
         assert_eq!(
             p1.field, p2.field,
@@ -384,5 +401,151 @@ mod tests {
             let zerofier = Polynomial::zerofier(&domain);
             assert_eq!(zerofier.deg(), n as i128);
         }
+    }
+
+    #[test]
+    fn test_scale_constant_polynomial() {
+        let field = setup_field();
+        let poly = constant_poly(&field, 5);
+        let c = field.new_element(3);
+
+        let scaled = poly.scale(&c);
+        assert_eq!(scaled.deg(), 0);
+        assert_eq!(scaled.coeffs[0].value, 5);
+    }
+
+    #[test]
+    fn test_scale_linear_polynomial() {
+        let field = setup_field();
+        let poly = linear_poly(&field, 2, 3);
+        let c = field.new_element(5);
+
+        let scaled = poly.scale(&c);
+        assert_eq!(scaled.deg(), 1);
+        assert_eq!(scaled.coeffs[0].value, 2);
+        assert_eq!(scaled.coeffs[1].value, 15);
+    }
+
+    #[test]
+    fn test_scale_quadratic_polynomial() {
+        let field = setup_field();
+        let poly = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(2),
+                field.new_element(3),
+            ],
+            field,
+        );
+        let c = field.new_element(2);
+
+        let scaled = poly.scale(&c);
+        assert_eq!(scaled.deg(), 2);
+        assert_eq!(scaled.coeffs[0].value, 1);
+        assert_eq!(scaled.coeffs[1].value, 4);
+        assert_eq!(scaled.coeffs[2].value, 12);
+    }
+
+    #[test]
+    fn test_scale_evaluation_shift() {
+        let field = setup_field();
+        let poly = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(1),
+                field.new_element(1),
+            ],
+            field,
+        );
+
+        let c = field.new_element(2);
+
+        for test_val in 1..=5 {
+            let x = field.new_element(test_val);
+            let cx = &c * &x;
+
+            let scaled = poly.scale(&c);
+            let eval_scaled_at_x = Polynomial::eval(&scaled, &x);
+            let eval_original_at_cx = Polynomial::eval(&poly, &cx);
+
+            assert_eq!(
+                eval_scaled_at_x, eval_original_at_cx,
+                "f(c·X) at X={} should equal f(X) at X={}",
+                test_val,
+                test_val * c.value
+            );
+        }
+    }
+
+    #[test]
+    fn test_scale_sequence_shift() {
+        let field = setup_field();
+        let c = field.new_element(2);
+
+        let values: Vec<FieldElement> = (0..4).map(|i| field.new_element(i)).collect();
+
+        let domain: Vec<FieldElement> = (0..4).map(|i| field.exp(&c, i)).collect();
+
+        let poly = Polynomial::interpolate_domain(&domain, &values);
+
+        let scaled = poly.scale(&c);
+
+        for i in 0..3 {
+            let point = field.exp(&c, i);
+            let eval_scaled = Polynomial::eval(&scaled, &point);
+
+            let expected = field.new_element(i + 1);
+            assert_eq!(
+                eval_scaled, expected,
+                "Scaled polynomial should shift sequence by one position"
+            );
+        }
+    }
+
+    #[test]
+    fn test_scale_by_one() {
+        let field = setup_field();
+        let poly = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(2),
+                field.new_element(3),
+            ],
+            field,
+        );
+
+        let one = field.one();
+
+        let scaled = poly.scale(&one);
+        assert_eq!(scaled, poly);
+    }
+
+    #[test]
+    fn test_scale_zero_polynomial() {
+        let field = setup_field();
+        let zero = zero_poly(&field);
+        let c = field.new_element(5);
+
+        let scaled = zero.scale(&c);
+        assert!(scaled.is_zero());
+    }
+
+    #[test]
+    fn test_scale_preserves_degree() {
+        let field = setup_field();
+        let poly = Polynomial::new(
+            vec![
+                field.new_element(1),
+                field.new_element(2),
+                field.new_element(3),
+                field.new_element(4),
+            ],
+            field,
+        );
+
+        let c = field.new_element(7);
+        let scaled = poly.scale(&c);
+
+        assert_eq!(scaled.deg(), poly.deg());
     }
 }
