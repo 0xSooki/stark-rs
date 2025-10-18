@@ -2,7 +2,7 @@ use std::cmp::max;
 
 use crate::ff::FieldElement;
 
-use super::poly::Polynomial;
+use super::Polynomial;
 
 impl Polynomial {
     pub fn sub(lhs: &Polynomial, rhs: &Polynomial) -> Polynomial {

@@ -1,4 +1,4 @@
-use super::poly::Polynomial;
+use super::Polynomial;
 
 impl Polynomial {
     pub fn mul(lhs: &Polynomial, rhs: &Polynomial) -> Polynomial {

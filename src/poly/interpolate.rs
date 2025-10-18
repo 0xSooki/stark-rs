@@ -1,6 +1,6 @@
 use crate::ff::FieldElement;
 
-use super::poly::Polynomial;
+use super::Polynomial;
 
 impl Polynomial {
     pub fn interpolate_domain(

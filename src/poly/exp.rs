@@ -1,4 +1,4 @@
-use super::poly::Polynomial;
+use super::Polynomial;
 
 impl Polynomial {
     pub fn exp(base: &Polynomial, exp: u64) -> Polynomial {

@@ -1,4 +1,4 @@
-use super::poly::Polynomial;
+use super::Polynomial;
 use crate::ff::FieldElement;
 use std::cmp::max;
 

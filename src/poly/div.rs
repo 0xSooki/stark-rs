@@ -1,4 +1,4 @@
-use super::poly::Polynomial;
+use super::Polynomial;
 
 impl Polynomial {
     pub fn div(numer: &Polynomial, denom: &Polynomial) -> (Polynomial, Polynomial) {
@@ -45,7 +45,7 @@ impl Polynomial {
     }
 
     pub fn modulo(numer: &Polynomial, denom: &Polynomial) -> Polynomial {
-        let (q, r) = Self::div(numer, denom);
+        let (_, r) = Self::div(numer, denom);
         r
     }
 }
