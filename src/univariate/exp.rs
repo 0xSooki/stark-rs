@@ -52,7 +52,6 @@ mod tests {
         FiniteField::new(P)
     }
 
-
     #[test]
     fn test_exp_zero() {
         let field = setup_field();

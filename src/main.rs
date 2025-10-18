@@ -1,7 +1,7 @@
 use crate::ff::FiniteField;
 mod ff;
-mod utils;
 pub mod univariate;
+mod utils;
 use crate::univariate::Polynomial;
 const P: u64 = 998244353; // 2^31 - 1 (Mersenne prime)
 

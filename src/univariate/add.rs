@@ -50,7 +50,7 @@ mod tests {
     fn setup_field() -> FiniteField {
         FiniteField::new(P)
     }
-    
+
     #[test]
     fn test_add_zero() {
         let field = setup_field();
