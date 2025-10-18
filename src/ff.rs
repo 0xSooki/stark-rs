@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use core::fmt;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, BitXor, Div, Mul, Neg, Sub};
 
 use crate::utils::xgcd;
 
@@ -199,6 +199,54 @@ impl FiniteField {
             acc.value = (((acc.value as u128) ^ *b as u128) % self.p as u128) as u64;
         }
         acc
+    }
+}
+
+impl Add<&FieldElement> for &FieldElement {
+    type Output = FieldElement;
+
+    fn add(self, rhs: &FieldElement) -> Self::Output {
+        self.field.add(&self, &rhs)
+    }
+}
+
+impl Sub<&FieldElement> for &FieldElement {
+    type Output = FieldElement;
+
+    fn sub(self, rhs: &FieldElement) -> Self::Output {
+        self.field.sub(&self, &rhs)
+    }
+}
+
+impl Mul<&FieldElement> for &FieldElement {
+    type Output = FieldElement;
+
+    fn mul(self, rhs: &FieldElement) -> Self::Output {
+        self.field.mul(&self, &rhs)
+    }
+}
+
+impl Div<&FieldElement> for &FieldElement {
+    type Output = FieldElement;
+
+    fn div(self, rhs: &FieldElement) -> Self::Output {
+        self.field.div(self, rhs)
+    }
+}
+
+impl BitXor<u64> for &FieldElement {
+    type Output = FieldElement;
+
+    fn bitxor(self, rhs: u64) -> Self::Output {
+        self.field.exp(self, rhs)
+    }
+}
+
+impl Neg for &FieldElement {
+    type Output = FieldElement;
+
+    fn neg(self) -> Self::Output {
+        self.field.neg(self)
     }
 }
 
