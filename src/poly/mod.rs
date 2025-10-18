@@ -74,6 +74,27 @@ impl Polynomial {
         }
     }
 
+    pub fn zerofier(domain: &Vec<FieldElement>) -> Polynomial {
+        let field = domain[0].field;
+        let x = Polynomial {
+            coeffs: vec![field.zero(), field.one()],
+            field: field,
+        };
+        let mut acc = Polynomial {
+            coeffs: vec![field.one()],
+            field: field,
+        };
+        for d in domain {
+            acc = &acc
+                * &(&x
+                    - &Polynomial {
+                        coeffs: vec![*d],
+                        field: field,
+                    });
+        }
+        acc
+    }
+
     fn assert_same_field(p1: &Polynomial, p2: &Polynomial) {
         assert_eq!(
             p1.field, p2.field,
@@ -267,5 +288,101 @@ mod tests {
 
         let sum = Polynomial::add(&poly, &neg);
         assert!(sum.is_zero());
+    }
+
+    #[test]
+    fn test_zerofier_single_point() {
+        let field = setup_field();
+        let domain = vec![field.new_element(5)];
+
+        let zerofier = Polynomial::zerofier(&domain);
+
+        assert_eq!(zerofier.deg(), 1);
+        assert_eq!(zerofier.coeffs[0].value, P - 5);
+        assert_eq!(zerofier.coeffs[1].value, 1);
+
+        let eval = Polynomial::eval(&zerofier, &domain[0]);
+        assert_eq!(eval.value, 0);
+    }
+
+    #[test]
+    fn test_zerofier_two_points() {
+        let field = setup_field();
+        let domain = vec![field.new_element(2), field.new_element(3)];
+
+        let zerofier = Polynomial::zerofier(&domain);
+
+        assert_eq!(zerofier.deg(), 2);
+        assert_eq!(zerofier.coeffs[0].value, 6);
+        assert_eq!(zerofier.coeffs[1].value, P - 5);
+        assert_eq!(zerofier.coeffs[2].value, 1);
+
+        for point in &domain {
+            let eval = Polynomial::eval(&zerofier, point);
+            assert_eq!(eval.value, 0);
+        }
+    }
+
+    #[test]
+    fn test_zerofier_three_points() {
+        let field = setup_field();
+        let domain = vec![
+            field.new_element(1),
+            field.new_element(2),
+            field.new_element(3),
+        ];
+
+        let zerofier = Polynomial::zerofier(&domain);
+
+        assert_eq!(zerofier.deg(), 3);
+        assert_eq!(zerofier.coeffs[0].value, P - 6);
+        assert_eq!(zerofier.coeffs[1].value, 11);
+        assert_eq!(zerofier.coeffs[2].value, P - 6);
+        assert_eq!(zerofier.coeffs[3].value, 1);
+
+        for point in &domain {
+            let eval = Polynomial::eval(&zerofier, point);
+            assert_eq!(eval.value, 0);
+        }
+    }
+
+    #[test]
+    fn test_zerofier_zero_point() {
+        let field = setup_field();
+        let domain = vec![field.new_element(0)];
+
+        let zerofier = Polynomial::zerofier(&domain);
+
+        assert_eq!(zerofier.deg(), 1);
+        assert_eq!(zerofier.coeffs[0].value, 0);
+        assert_eq!(zerofier.coeffs[1].value, 1);
+
+        let eval = Polynomial::eval(&zerofier, &domain[0]);
+        assert_eq!(eval.value, 0);
+    }
+
+    #[test]
+    fn test_zerofier_nonzero_evaluation() {
+        let field = setup_field();
+        let domain = vec![field.new_element(1), field.new_element(2)];
+
+        let zerofier = Polynomial::zerofier(&domain);
+
+        let test_point = field.new_element(5);
+        let eval = Polynomial::eval(&zerofier, &test_point);
+
+        assert_eq!(eval.value, 12);
+        assert_ne!(eval.value, 0);
+    }
+
+    #[test]
+    fn test_zerofier_degree() {
+        let field = setup_field();
+
+        for n in 1..=5 {
+            let domain: Vec<FieldElement> = (1..=n).map(|i| field.new_element(i as u64)).collect();
+            let zerofier = Polynomial::zerofier(&domain);
+            assert_eq!(zerofier.deg(), n as i128);
+        }
     }
 }
