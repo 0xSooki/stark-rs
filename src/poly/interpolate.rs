@@ -27,14 +27,16 @@ impl Polynomial {
                 if j == i {
                     continue;
                 }
-                let xj = &Polynomial {coeffs: vec![domain[j]], field: field};
-                let denom =  field.inv(&(domain[i]-domain[j]));
+                let xj = &Polynomial {
+                    coeffs: vec![domain[j]],
+                    field: field,
+                };
+                let denom = field.inv(&(domain[i] - domain[j]));
                 prod = &prod * &(&x - &xj);
 
                 for c in &mut prod.coeffs {
                     *c = *c * denom;
                 }
-
             }
             acc = &acc + &prod;
         }
@@ -67,33 +69,33 @@ mod test {
         Polynomial::new(vec![field.new_element(a), field.new_element(b)], *field)
     }
 
-#[test]
-fn test_x2() {
-    let field = setup_field();
-    let domain = vec![
-        field.new_element(1),
-        field.new_element(2),
-        field.new_element(3)
-    ];
-    let values = vec![
-        field.new_element(1),
-        field.new_element(4),
-        field.new_element(9)
-    ];
-    
-    let res = Polynomial::interpolate_domain(&domain, &values);
-    
-    assert_eq!(res.coeffs.len(), 3);
-    assert_eq!(res.coeffs[0].value, 0); 
-    assert_eq!(res.coeffs[1].value, 0);
-    assert_eq!(res.coeffs[2].value, 1);
-    
-    for (x, expected) in domain.iter().zip(values.iter()) {
-        assert_eq!(Polynomial::eval(&res, x), *expected);
-    }
-} 
+    #[test]
+    fn test_x2() {
+        let field = setup_field();
+        let domain = vec![
+            field.new_element(1),
+            field.new_element(2),
+            field.new_element(3),
+        ];
+        let values = vec![
+            field.new_element(1),
+            field.new_element(4),
+            field.new_element(9),
+        ];
 
-        #[test]
+        let res = Polynomial::interpolate_domain(&domain, &values);
+
+        assert_eq!(res.coeffs.len(), 3);
+        assert_eq!(res.coeffs[0].value, 0);
+        assert_eq!(res.coeffs[1].value, 0);
+        assert_eq!(res.coeffs[2].value, 1);
+
+        for (x, expected) in domain.iter().zip(values.iter()) {
+            assert_eq!(Polynomial::eval(&res, x), *expected);
+        }
+    }
+
+    #[test]
     fn test_linear_polynomial() {
         let field = setup_field();
         let domain = vec![field.new_element(1), field.new_element(3)];
@@ -107,8 +109,16 @@ fn test_x2() {
     #[test]
     fn test_quadratic_polynomial() {
         let field = setup_field();
-        let domain = vec![field.new_element(1), field.new_element(2), field.new_element(3)];
-        let values = vec![field.new_element(2), field.new_element(5), field.new_element(10)];
+        let domain = vec![
+            field.new_element(1),
+            field.new_element(2),
+            field.new_element(3),
+        ];
+        let values = vec![
+            field.new_element(2),
+            field.new_element(5),
+            field.new_element(10),
+        ];
         let res = Polynomial::interpolate_domain(&domain, &values);
         assert_eq!(res.coeffs.len(), 3);
         assert_eq!(res.coeffs[0].value, 1);
@@ -140,7 +150,7 @@ fn test_x2() {
     #[test]
     fn test_lagrange_three_points() {
         let field = setup_field();
-        
+
         let domain = vec![
             field.new_element(0),
             field.new_element(1),
@@ -151,14 +161,14 @@ fn test_x2() {
             field.new_element(6),
             field.new_element(48),
         ];
-        
+
         let res = Polynomial::interpolate_domain(&domain, &values);
-        
+
         assert_eq!(res.coeffs.len(), 3);
         assert_eq!(res.coeffs[0].value, (P as i128 - 2) as u64);
         assert_eq!(res.coeffs[1].value, 5);
         assert_eq!(res.coeffs[2].value, 3);
-        
+
         for (x, expected) in domain.iter().zip(values.iter()) {
             assert_eq!(Polynomial::eval(&res, x), *expected);
         }
