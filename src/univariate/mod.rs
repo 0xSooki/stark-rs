@@ -141,6 +141,15 @@ impl Polynomial {
     pub fn linear_poly(field: &FiniteField, a: u64, b: u64) -> Polynomial {
         Polynomial::new(vec![field.new_element(a), field.new_element(b)], *field)
     }
+
+    pub fn test_colinearity(points: &Vec<(FieldElement, FieldElement)>) -> bool {
+        assert!(points.len() >= 2, "At least 2 points to test colinearity");
+
+        let xs = points.iter().map(|p| p.0).collect();
+        let ys = points.iter().map(|p| p.1).collect();
+        let poly = Polynomial::interpolate_domain(&xs, &ys);
+        return poly.deg() <= 1;
+    }
 }
 
 mod add;
@@ -469,7 +478,8 @@ mod tests {
             let eval_original_at_cx = Polynomial::eval(&poly, &cx);
 
             assert_eq!(
-                eval_scaled_at_x, eval_original_at_cx,
+                eval_scaled_at_x,
+                eval_original_at_cx,
                 "f(c·X) at X={} should equal f(X) at X={}",
                 test_val,
                 test_val * c.value
@@ -547,5 +557,83 @@ mod tests {
         let scaled = poly.scale(&c);
 
         assert_eq!(scaled.deg(), poly.deg());
+    }
+
+    #[test]
+    fn test_colinearity_three_points_on_line() {
+        let field = setup_field();
+
+        let points = vec![
+            (field.new_element(1), field.new_element(2)),
+            (field.new_element(2), field.new_element(4)),
+            (field.new_element(3), field.new_element(6)),
+        ];
+
+        assert!(Polynomial::test_colinearity(&points));
+    }
+
+    #[test]
+    fn test_colinearity_three_points_not_on_line() {
+        let field = setup_field();
+
+        let points = vec![
+            (field.new_element(1), field.new_element(1)),
+            (field.new_element(2), field.new_element(4)),
+            (field.new_element(3), field.new_element(9)),
+        ];
+
+        assert!(!Polynomial::test_colinearity(&points));
+    }
+
+    #[test]
+    fn test_colinearity_two_points_always_colinear() {
+        let field = setup_field();
+
+        let points = vec![
+            (field.new_element(5), field.new_element(7)),
+            (field.new_element(10), field.new_element(99)),
+        ];
+
+        assert!(Polynomial::test_colinearity(&points));
+    }
+
+    #[test]
+    fn test_colinearity_horizontal_line() {
+        let field = setup_field();
+
+        let points = vec![
+            (field.new_element(1), field.new_element(5)),
+            (field.new_element(2), field.new_element(5)),
+            (field.new_element(3), field.new_element(5)),
+        ];
+
+        assert!(Polynomial::test_colinearity(&points));
+    }
+
+    #[test]
+    #[should_panic(expected = "no inverse")]
+    fn test_colinearity_vertical_behavior() {
+        let field = setup_field();
+
+        let points = vec![
+            (field.new_element(5), field.new_element(1)),
+            (field.new_element(5), field.new_element(2)),
+            (field.new_element(5), field.new_element(3)),
+        ];
+
+        Polynomial::test_colinearity(&points);
+    }
+
+    #[test]
+    fn test_colinearity_with_zero() {
+        let field = setup_field();
+
+        let points = vec![
+            (field.new_element(0), field.new_element(0)),
+            (field.new_element(1), field.new_element(3)),
+            (field.new_element(2), field.new_element(6)),
+        ];
+
+        assert!(Polynomial::test_colinearity(&points));
     }
 }
