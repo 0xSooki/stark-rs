@@ -53,23 +53,11 @@ mod tests {
         FiniteField::new(P)
     }
 
-    fn zero_poly(field: &FiniteField) -> Polynomial {
-        Polynomial::new(vec![], *field)
-    }
-
-    fn constant_poly(field: &FiniteField, value: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(value)], *field)
-    }
-
-    fn linear_poly(field: &FiniteField, a: u64, b: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(a), field.new_element(b)], *field)
-    }
-
     #[test]
     fn test_sub_zero() {
         let field = setup_field();
-        let poly = linear_poly(&field, 3, 4);
-        let zero = zero_poly(&field);
+        let poly = Polynomial::linear_poly(&field, 3, 4);
+        let zero = Polynomial::zero_poly(&field);
 
         let result = Polynomial::sub(&poly, &zero);
         assert_eq!(result, poly);
@@ -81,8 +69,8 @@ mod tests {
     #[test]
     fn test_sub_constants() {
         let field = setup_field();
-        let poly1 = constant_poly(&field, 8);
-        let poly2 = constant_poly(&field, 3);
+        let poly1 = Polynomial::constant_poly(&field, 8);
+        let poly2 = Polynomial::constant_poly(&field, 3);
 
         let result = Polynomial::sub(&poly1, &poly2);
         assert_eq!(result.deg(), 0);
@@ -92,8 +80,8 @@ mod tests {
     #[test]
     fn test_sub_same_degree() {
         let field = setup_field();
-        let poly1 = linear_poly(&field, 6, 8);
-        let poly2 = linear_poly(&field, 2, 3);
+        let poly1 = Polynomial::linear_poly(&field, 6, 8);
+        let poly2 = Polynomial::linear_poly(&field, 2, 3);
 
         let result = Polynomial::sub(&poly1, &poly2);
         assert_eq!(result.deg(), 1);
@@ -104,8 +92,8 @@ mod tests {
     #[test]
     fn test_sub_different_degrees() {
         let field = setup_field();
-        let poly1 = linear_poly(&field, 1, 2);
-        let poly2 = constant_poly(&field, 1);
+        let poly1 = Polynomial::linear_poly(&field, 1, 2);
+        let poly2 = Polynomial::constant_poly(&field, 1);
 
         let result = Polynomial::sub(&poly1, &poly2);
         assert_eq!(result.deg(), 1);
@@ -116,7 +104,7 @@ mod tests {
     #[test]
     fn test_sub_self() {
         let field = setup_field();
-        let poly = linear_poly(&field, 5, 7);
+        let poly = Polynomial::linear_poly(&field, 5, 7);
 
         let result = Polynomial::sub(&poly, &poly);
         assert!(result.is_zero());
@@ -125,8 +113,8 @@ mod tests {
     #[test]
     fn test_sub_underflow() {
         let field = setup_field();
-        let poly1 = constant_poly(&field, 1);
-        let poly2 = constant_poly(&field, 3);
+        let poly1 = Polynomial::constant_poly(&field, 1);
+        let poly2 = Polynomial::constant_poly(&field, 3);
 
         let result = Polynomial::sub(&poly1, &poly2);
         assert_eq!(result.deg(), 0);
@@ -144,7 +132,7 @@ mod tests {
             ],
             field,
         );
-        let poly2 = linear_poly(&field, 4, 5);
+        let poly2 = Polynomial::linear_poly(&field, 4, 5);
 
         let result1 = Polynomial::sub(&poly1, &poly2);
         let result2 = Polynomial::sub(&poly2, &poly1);
@@ -154,8 +142,8 @@ mod tests {
     #[test]
     fn test_sub_with_add() {
         let field = setup_field();
-        let poly1 = linear_poly(&field, 3, 7);
-        let poly2 = linear_poly(&field, 1, 2);
+        let poly1 = Polynomial::linear_poly(&field, 3, 7);
+        let poly2 = Polynomial::linear_poly(&field, 1, 2);
 
         let diff = Polynomial::sub(&poly1, &poly2);
         let sum = Polynomial::add(&diff, &poly2);

@@ -57,18 +57,6 @@ mod test {
         FiniteField::new(P)
     }
 
-    fn zero_poly(field: &FiniteField) -> Polynomial {
-        Polynomial::new(vec![], *field)
-    }
-
-    fn constant_poly(field: &FiniteField, value: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(value)], *field)
-    }
-
-    fn linear_poly(field: &FiniteField, a: u64, b: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(a), field.new_element(b)], *field)
-    }
-
     #[test]
     fn test_x2() {
         let field = setup_field();

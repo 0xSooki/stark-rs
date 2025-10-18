@@ -50,24 +50,12 @@ mod tests {
     fn setup_field() -> FiniteField {
         FiniteField::new(P)
     }
-
-    fn zero_poly(field: &FiniteField) -> Polynomial {
-        Polynomial::new(vec![], *field)
-    }
-
-    fn constant_poly(field: &FiniteField, value: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(value)], *field)
-    }
-
-    fn linear_poly(field: &FiniteField, a: u64, b: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(a), field.new_element(b)], *field)
-    }
-
+    
     #[test]
     fn test_add_zero() {
         let field = setup_field();
-        let poly = linear_poly(&field, 1, 2);
-        let zero = zero_poly(&field);
+        let poly = Polynomial::linear_poly(&field, 1, 2);
+        let zero = Polynomial::zero_poly(&field);
 
         let result = &poly + &zero;
         assert_eq!(result, poly);
@@ -79,8 +67,8 @@ mod tests {
     #[test]
     fn test_add_constants() {
         let field = setup_field();
-        let poly1 = constant_poly(&field, 3);
-        let poly2 = constant_poly(&field, 5);
+        let poly1 = Polynomial::constant_poly(&field, 3);
+        let poly2 = Polynomial::constant_poly(&field, 5);
 
         let result = Polynomial::add(&poly1, &poly2);
         assert_eq!(result.deg(), 0);
@@ -90,8 +78,8 @@ mod tests {
     #[test]
     fn test_add_same_degree() {
         let field = setup_field();
-        let poly1 = linear_poly(&field, 1, 2);
-        let poly2 = linear_poly(&field, 3, 4);
+        let poly1 = Polynomial::linear_poly(&field, 1, 2);
+        let poly2 = Polynomial::linear_poly(&field, 3, 4);
 
         let result = Polynomial::add(&poly1, &poly2);
         assert_eq!(result.deg(), 1);
@@ -102,8 +90,8 @@ mod tests {
     #[test]
     fn test_add_different_degrees() {
         let field = setup_field();
-        let poly1 = constant_poly(&field, 5);
-        let poly2 = linear_poly(&field, 1, 2);
+        let poly1 = Polynomial::constant_poly(&field, 5);
+        let poly2 = Polynomial::linear_poly(&field, 1, 2);
 
         let result = Polynomial::add(&poly1, &poly2);
         assert_eq!(result.deg(), 1);
@@ -117,7 +105,7 @@ mod tests {
     #[test]
     fn test_add_result_zero() {
         let field = setup_field();
-        let poly1 = linear_poly(&field, 1, 2);
+        let poly1 = Polynomial::linear_poly(&field, 1, 2);
         let poly2 = Polynomial::new(
             vec![field.new_element(P - 1), field.new_element(P - 2)],
             field,
@@ -130,8 +118,8 @@ mod tests {
     #[test]
     fn test_add_overflow() {
         let field = setup_field();
-        let poly1 = constant_poly(&field, P - 1);
-        let poly2 = constant_poly(&field, 2);
+        let poly1 = Polynomial::constant_poly(&field, P - 1);
+        let poly2 = Polynomial::constant_poly(&field, 2);
 
         let result = Polynomial::add(&poly1, &poly2);
         assert_eq!(result.deg(), 0);
@@ -149,7 +137,7 @@ mod tests {
             ],
             field,
         );
-        let poly2 = linear_poly(&field, 4, 5);
+        let poly2 = Polynomial::linear_poly(&field, 4, 5);
 
         let result1 = Polynomial::add(&poly1, &poly2);
         let result2 = Polynomial::add(&poly2, &poly1);
@@ -159,9 +147,9 @@ mod tests {
     #[test]
     fn test_add_associativity() {
         let field = setup_field();
-        let poly1 = constant_poly(&field, 1);
-        let poly2 = constant_poly(&field, 2);
-        let poly3 = constant_poly(&field, 3);
+        let poly1 = Polynomial::constant_poly(&field, 1);
+        let poly2 = Polynomial::constant_poly(&field, 2);
+        let poly3 = Polynomial::constant_poly(&field, 3);
 
         let result1 = Polynomial::add(&Polynomial::add(&poly1, &poly2), &poly3);
         let result2 = Polynomial::add(&poly1, &Polynomial::add(&poly2, &poly3));

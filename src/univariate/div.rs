@@ -79,18 +79,6 @@ mod tests {
         FiniteField::new(P)
     }
 
-    fn zero_poly(field: &FiniteField) -> Polynomial {
-        Polynomial::new(vec![], *field)
-    }
-
-    fn constant_poly(field: &FiniteField, value: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(value)], *field)
-    }
-
-    fn linear_poly(field: &FiniteField, a: u64, b: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(a), field.new_element(b)], *field)
-    }
-
     #[test]
     fn test_division_basic() {
         let field = setup_field();
@@ -146,7 +134,7 @@ mod tests {
             ],
             field,
         );
-        let divisor = constant_poly(&field, 2);
+        let divisor = Polynomial::constant_poly(&field, 2);
 
         let (quotient, remainder) = Polynomial::div(&dividend, &divisor);
 
@@ -161,7 +149,7 @@ mod tests {
     fn test_division_lower_degree_dividend() {
         let field = setup_field();
 
-        let dividend = linear_poly(&field, 1, 1);
+        let dividend = Polynomial::linear_poly(&field, 1, 1);
         let divisor = Polynomial::new(
             vec![
                 field.new_element(1),
@@ -182,8 +170,8 @@ mod tests {
     fn test_division_by_zero() {
         let field = setup_field();
 
-        let dividend = linear_poly(&field, 1, 1);
-        let zero = zero_poly(&field);
+        let dividend = Polynomial::linear_poly(&field, 1, 1);
+        let zero = Polynomial::zero_poly(&field);
 
         Polynomial::div(&dividend, &zero);
     }
@@ -192,8 +180,8 @@ mod tests {
     fn test_division_zero_dividend() {
         let field = setup_field();
 
-        let zero = zero_poly(&field);
-        let divisor = linear_poly(&field, 1, 1);
+        let zero = Polynomial::zero_poly(&field);
+        let divisor = Polynomial::linear_poly(&field, 1, 1);
 
         let (quotient, remainder) = Polynomial::div(&zero, &divisor);
 
@@ -205,7 +193,7 @@ mod tests {
     fn test_division_same_polynomials() {
         let field = setup_field();
 
-        let poly = linear_poly(&field, 2, 3);
+        let poly = Polynomial::linear_poly(&field, 2, 3);
 
         let (quotient, remainder) = Polynomial::div(&poly, &poly);
 
@@ -250,7 +238,7 @@ mod tests {
             ],
             field,
         );
-        let divisor = linear_poly(&field, 1, 1);
+        let divisor = Polynomial::linear_poly(&field, 1, 1);
 
         let (quotient, remainder) = Polynomial::div(&dividend, &divisor);
 
@@ -263,7 +251,7 @@ mod tests {
         let field = setup_field();
 
         let dividend = Polynomial::new(vec![field.new_element(7), field.new_element(14)], field);
-        let divisor = constant_poly(&field, 7);
+        let divisor = Polynomial::constant_poly(&field, 7);
 
         let (quotient, remainder) = Polynomial::div(&dividend, &divisor);
 

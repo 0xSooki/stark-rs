@@ -48,23 +48,11 @@ mod tests {
         FiniteField::new(P)
     }
 
-    fn zero_poly(field: &FiniteField) -> Polynomial {
-        Polynomial::new(vec![], *field)
-    }
-
-    fn constant_poly(field: &FiniteField, value: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(value)], *field)
-    }
-
-    fn linear_poly(field: &FiniteField, a: u64, b: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(a), field.new_element(b)], *field)
-    }
-
     #[test]
     fn test_mul_zero() {
         let field = setup_field();
-        let poly = linear_poly(&field, 2, 3);
-        let zero = zero_poly(&field);
+        let poly = Polynomial::linear_poly(&field, 2, 3);
+        let zero = Polynomial::zero_poly(&field);
 
         let result = Polynomial::mul(&poly, &zero);
         assert!(result.is_zero());
@@ -76,8 +64,8 @@ mod tests {
     #[test]
     fn test_mul_by_one() {
         let field = setup_field();
-        let poly = linear_poly(&field, 2, 3);
-        let one = constant_poly(&field, 1);
+        let poly = Polynomial::linear_poly(&field, 2, 3);
+        let one = Polynomial::constant_poly(&field, 1);
 
         let result = Polynomial::mul(&poly, &one);
         assert_eq!(result, poly);
@@ -89,8 +77,8 @@ mod tests {
     #[test]
     fn test_mul_constants() {
         let field = setup_field();
-        let poly1 = constant_poly(&field, 3);
-        let poly2 = constant_poly(&field, 4);
+        let poly1 = Polynomial::constant_poly(&field, 3);
+        let poly2 = Polynomial::constant_poly(&field, 4);
 
         let result = Polynomial::mul(&poly1, &poly2);
         assert_eq!(result.deg(), 0);
@@ -100,8 +88,8 @@ mod tests {
     #[test]
     fn test_mul_linear() {
         let field = setup_field();
-        let poly1 = linear_poly(&field, 1, 1);
-        let poly2 = linear_poly(&field, 1, 1);
+        let poly1 = Polynomial::linear_poly(&field, 1, 1);
+        let poly2 = Polynomial::linear_poly(&field, 1, 1);
 
         let result = Polynomial::mul(&poly1, &poly2);
         assert_eq!(result.deg(), 2);
@@ -113,7 +101,7 @@ mod tests {
     #[test]
     fn test_mul_different_degrees() {
         let field = setup_field();
-        let poly1 = constant_poly(&field, 2);
+        let poly1 = Polynomial::constant_poly(&field, 2);
         let poly2 = Polynomial::new(
             vec![
                 field.new_element(1),
@@ -141,7 +129,7 @@ mod tests {
             ],
             field,
         );
-        let poly2 = linear_poly(&field, 4, 5);
+        let poly2 = Polynomial::linear_poly(&field, 4, 5);
 
         let result1 = Polynomial::mul(&poly1, &poly2);
         let result2 = Polynomial::mul(&poly2, &poly1);
@@ -151,9 +139,9 @@ mod tests {
     #[test]
     fn test_mul_distributivity() {
         let field = setup_field();
-        let poly1 = linear_poly(&field, 1, 1);
-        let poly2 = linear_poly(&field, 2, 3);
-        let poly3 = linear_poly(&field, 4, 5);
+        let poly1 = Polynomial::linear_poly(&field, 1, 1);
+        let poly2 = Polynomial::linear_poly(&field, 2, 3);
+        let poly3 = Polynomial::linear_poly(&field, 4, 5);
 
         let sum = Polynomial::add(&poly2, &poly3);
         let result1 = Polynomial::mul(&poly1, &sum);
@@ -169,8 +157,8 @@ mod tests {
     fn test_mul_overflow() {
         let field = setup_field();
         let large_val = P - 1;
-        let poly1 = constant_poly(&field, large_val);
-        let poly2 = constant_poly(&field, 2);
+        let poly1 = Polynomial::constant_poly(&field, large_val);
+        let poly2 = Polynomial::constant_poly(&field, 2);
 
         let result = Polynomial::mul(&poly1, &poly2);
         assert_eq!(result.deg(), 0);

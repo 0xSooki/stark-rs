@@ -129,6 +129,18 @@ impl Polynomial {
         }
         self.coeffs[self.deg() as usize]
     }
+
+    pub fn zero_poly(field: &FiniteField) -> Polynomial {
+        Polynomial::new(vec![], *field)
+    }
+
+    pub fn constant_poly(field: &FiniteField, value: u64) -> Polynomial {
+        Polynomial::new(vec![field.new_element(value)], *field)
+    }
+
+    pub fn linear_poly(field: &FiniteField, a: u64, b: u64) -> Polynomial {
+        Polynomial::new(vec![field.new_element(a), field.new_element(b)], *field)
+    }
 }
 
 mod add;
@@ -148,18 +160,6 @@ mod tests {
 
     fn setup_field() -> FiniteField {
         FiniteField::new(P)
-    }
-
-    fn zero_poly(field: &FiniteField) -> Polynomial {
-        Polynomial::new(vec![], *field)
-    }
-
-    fn constant_poly(field: &FiniteField, value: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(value)], *field)
-    }
-
-    fn linear_poly(field: &FiniteField, a: u64, b: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(a), field.new_element(b)], *field)
     }
 
     #[test]
@@ -188,13 +188,13 @@ mod tests {
     fn test_degree() {
         let field = setup_field();
 
-        let zero = zero_poly(&field);
+        let zero = Polynomial::zero_poly(&field);
         assert_eq!(zero.deg(), -1);
 
-        let constant = constant_poly(&field, 5);
+        let constant = Polynomial::constant_poly(&field, 5);
         assert_eq!(constant.deg(), 0);
 
-        let linear = linear_poly(&field, 1, 2);
+        let linear = Polynomial::linear_poly(&field, 1, 2);
         assert_eq!(linear.deg(), 1);
 
         let quadratic = Polynomial::new(
@@ -223,10 +223,10 @@ mod tests {
     fn test_is_zero() {
         let field = setup_field();
 
-        let zero = zero_poly(&field);
+        let zero = Polynomial::zero_poly(&field);
         assert!(zero.is_zero());
 
-        let constant = constant_poly(&field, 5);
+        let constant = Polynomial::constant_poly(&field, 5);
         assert!(!constant.is_zero());
 
         let all_zeros = Polynomial::new(vec![field.new_element(0), field.new_element(0)], field);
@@ -237,7 +237,7 @@ mod tests {
     fn test_leading_coefficient() {
         let field = setup_field();
 
-        let linear = linear_poly(&field, 1, 2);
+        let linear = Polynomial::linear_poly(&field, 1, 2);
         assert_eq!(linear.leading_coeff().value, 2);
 
         let quadratic = Polynomial::new(
@@ -266,7 +266,7 @@ mod tests {
     #[should_panic(expected = "Zero polynomial has no leading coefficient")]
     fn test_leading_coefficient_zero_poly() {
         let field = setup_field();
-        let zero = zero_poly(&field);
+        let zero = Polynomial::zero_poly(&field);
         zero.leading_coeff();
     }
 
@@ -274,11 +274,11 @@ mod tests {
     fn test_equality() {
         let field = setup_field();
 
-        let poly1 = linear_poly(&field, 1, 2);
-        let poly2 = linear_poly(&field, 1, 2);
+        let poly1 = Polynomial::linear_poly(&field, 1, 2);
+        let poly2 = Polynomial::linear_poly(&field, 1, 2);
         assert_eq!(poly1, poly2);
 
-        let poly3 = linear_poly(&field, 1, 3);
+        let poly3 = Polynomial::linear_poly(&field, 1, 3);
         assert_ne!(poly1, poly3);
 
         let poly4 = Polynomial::new(
@@ -296,7 +296,7 @@ mod tests {
     fn test_negation() {
         let field = setup_field();
 
-        let poly = linear_poly(&field, 3, 4);
+        let poly = Polynomial::linear_poly(&field, 3, 4);
         let neg = Polynomial::neg(&poly);
 
         assert_eq!(neg.deg(), 1);
@@ -406,7 +406,7 @@ mod tests {
     #[test]
     fn test_scale_constant_polynomial() {
         let field = setup_field();
-        let poly = constant_poly(&field, 5);
+        let poly = Polynomial::constant_poly(&field, 5);
         let c = field.new_element(3);
 
         let scaled = poly.scale(&c);
@@ -417,7 +417,7 @@ mod tests {
     #[test]
     fn test_scale_linear_polynomial() {
         let field = setup_field();
-        let poly = linear_poly(&field, 2, 3);
+        let poly = Polynomial::linear_poly(&field, 2, 3);
         let c = field.new_element(5);
 
         let scaled = poly.scale(&c);
@@ -523,7 +523,7 @@ mod tests {
     #[test]
     fn test_scale_zero_polynomial() {
         let field = setup_field();
-        let zero = zero_poly(&field);
+        let zero = Polynomial::zero_poly(&field);
         let c = field.new_element(5);
 
         let scaled = zero.scale(&c);

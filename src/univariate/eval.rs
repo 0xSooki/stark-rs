@@ -32,22 +32,10 @@ mod tests {
         FiniteField::new(P)
     }
 
-    fn zero_poly(field: &FiniteField) -> Polynomial {
-        Polynomial::new(vec![], *field)
-    }
-
-    fn constant_poly(field: &FiniteField, value: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(value)], *field)
-    }
-
-    fn linear_poly(field: &FiniteField, a: u64, b: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(a), field.new_element(b)], *field)
-    }
-
     #[test]
     fn test_eval_zero_poly() {
         let field = setup_field();
-        let zero = zero_poly(&field);
+        let zero = Polynomial::zero_poly(&field);
         let x = field.new_element(5);
 
         let result = zero.eval(&x);
@@ -57,7 +45,7 @@ mod tests {
     #[test]
     fn test_eval_constant() {
         let field = setup_field();
-        let poly = constant_poly(&field, 7);
+        let poly = Polynomial::constant_poly(&field, 7);
         let x = field.new_element(10);
 
         let result = poly.eval(&x);
@@ -67,7 +55,7 @@ mod tests {
     #[test]
     fn test_eval_linear() {
         let field = setup_field();
-        let poly = linear_poly(&field, 2, 3);
+        let poly = Polynomial::linear_poly(&field, 2, 3);
         let x = field.new_element(4);
 
         let result = poly.eval(&x);
@@ -112,7 +100,7 @@ mod tests {
     #[test]
     fn test_eval_domain() {
         let field = setup_field();
-        let poly = linear_poly(&field, 1, 1);
+        let poly = Polynomial::linear_poly(&field, 1, 1);
         let domain = vec![
             field.new_element(0),
             field.new_element(1),
@@ -152,7 +140,7 @@ mod tests {
     #[test]
     fn test_eval_large_values() {
         let field = setup_field();
-        let poly = constant_poly(&field, P - 1);
+        let poly = Polynomial::constant_poly(&field, P - 1);
         let x = field.new_element(P - 1);
 
         let result = poly.eval(&x);
@@ -162,8 +150,8 @@ mod tests {
     #[test]
     fn test_eval_polynomial_arithmetic() {
         let field = setup_field();
-        let poly1 = linear_poly(&field, 1, 2);
-        let poly2 = linear_poly(&field, 3, 4);
+        let poly1 = Polynomial::linear_poly(&field, 1, 2);
+        let poly2 = Polynomial::linear_poly(&field, 3, 4);
         let sum = Polynomial::add(&poly1, &poly2);
         let x = field.new_element(7);
 

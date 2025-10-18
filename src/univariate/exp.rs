@@ -52,22 +52,11 @@ mod tests {
         FiniteField::new(P)
     }
 
-    fn zero_poly(field: &FiniteField) -> Polynomial {
-        Polynomial::new(vec![], *field)
-    }
-
-    fn constant_poly(field: &FiniteField, value: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(value)], *field)
-    }
-
-    fn linear_poly(field: &FiniteField, a: u64, b: u64) -> Polynomial {
-        Polynomial::new(vec![field.new_element(a), field.new_element(b)], *field)
-    }
 
     #[test]
     fn test_exp_zero() {
         let field = setup_field();
-        let poly = linear_poly(&field, 1, 2);
+        let poly = Polynomial::linear_poly(&field, 1, 2);
 
         let result = &poly ^ 0;
         assert_eq!(result.deg(), 0);
@@ -77,7 +66,7 @@ mod tests {
     #[test]
     fn test_exp_one() {
         let field = setup_field();
-        let poly = linear_poly(&field, 3, 4);
+        let poly = Polynomial::linear_poly(&field, 3, 4);
 
         let result = Polynomial::exp(&poly, 1);
         assert_eq!(result, poly);
@@ -86,7 +75,7 @@ mod tests {
     #[test]
     fn test_exp_zero_poly() {
         let field = setup_field();
-        let zero = zero_poly(&field);
+        let zero = Polynomial::zero_poly(&field);
 
         let result = Polynomial::exp(&zero, 5);
         assert!(result.is_zero());
@@ -95,7 +84,7 @@ mod tests {
     #[test]
     fn test_exp_constant() {
         let field = setup_field();
-        let poly = constant_poly(&field, 3);
+        let poly = Polynomial::constant_poly(&field, 3);
 
         let result = Polynomial::exp(&poly, 4);
         assert_eq!(result.deg(), 0);
@@ -105,7 +94,7 @@ mod tests {
     #[test]
     fn test_exp_linear_square() {
         let field = setup_field();
-        let poly = linear_poly(&field, 1, 1);
+        let poly = Polynomial::linear_poly(&field, 1, 1);
 
         let result = Polynomial::exp(&poly, 2);
         assert_eq!(result.deg(), 2);
@@ -117,7 +106,7 @@ mod tests {
     #[test]
     fn test_exp_linear_cube() {
         let field = setup_field();
-        let poly = linear_poly(&field, 1, 1);
+        let poly = Polynomial::linear_poly(&field, 1, 1);
 
         let result = Polynomial::exp(&poly, 3);
         assert_eq!(result.deg(), 3);
@@ -130,7 +119,7 @@ mod tests {
     #[test]
     fn test_exp_powers_of_two() {
         let field = setup_field();
-        let poly = linear_poly(&field, 0, 1);
+        let poly = Polynomial::linear_poly(&field, 0, 1);
 
         let result2 = Polynomial::exp(&poly, 2);
         let result4 = Polynomial::exp(&poly, 4);
@@ -144,7 +133,7 @@ mod tests {
     #[test]
     fn test_exp_large() {
         let field = setup_field();
-        let poly = linear_poly(&field, 2, 1);
+        let poly = Polynomial::linear_poly(&field, 2, 1);
 
         let result = Polynomial::exp(&poly, 10);
         assert_eq!(result.deg(), 10);
@@ -153,7 +142,7 @@ mod tests {
     #[test]
     fn test_exp_consistency() {
         let field = setup_field();
-        let poly = linear_poly(&field, 1, 2);
+        let poly = Polynomial::linear_poly(&field, 1, 2);
 
         let result1 = Polynomial::exp(&poly, 3);
         let manual = Polynomial::mul(&Polynomial::mul(&poly, &poly), &poly);
