@@ -1,6 +1,5 @@
 #![allow(dead_code)]
-use core::fmt;
-use std::ops::{Add, BitXor, Div, Mul, Neg, Sub};
+use std::{cmp::Ordering, ops::{Add, BitXor, Div, Mul, Neg, Sub}};
 
 use crate::utils::xgcd;
 
@@ -33,6 +32,31 @@ impl Add for FieldElement {
     }
 }
 
+impl Ord for FieldElement {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.value.cmp(&other.value)
+    }
+}
+
+impl PartialOrd for FieldElement {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+
+impl PartialEq for FieldElement {
+    fn eq(&self, other: &Self) -> bool {
+        self.value == other.value && self.field == other.field
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
+    }
+}
+
+impl Eq for FieldElement {}
+
 impl Sub for FieldElement {
     type Output = Self;
 
@@ -62,16 +86,6 @@ impl Neg for FieldElement {
 
     fn neg(self) -> Self::Output {
         self.field.neg(&self)
-    }
-}
-
-impl PartialEq for FieldElement {
-    fn eq(&self, other: &Self) -> bool {
-        self.value == other.value && self.field == other.field
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        !self.eq(other)
     }
 }
 
