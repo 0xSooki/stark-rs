@@ -99,6 +99,12 @@ impl BitXor<u64> for FieldElement {
     }
 }
 
+impl FieldElement {
+    pub fn pow(&self, exp: u64) -> FieldElement {
+        self.field.exp(self, exp)
+    }
+}
+
 impl FiniteField {
     pub fn new(p: u64) -> Self {
         FiniteField { p: p }
