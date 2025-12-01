@@ -41,7 +41,30 @@ impl MerkleTree {
         &self.root
     }
 
-    pub fn get_proof(&self, index: usize) -> Vec<Hash> {
+    pub fn commit(leaves: &Vec<Hash>) -> Hash {
+        assert!(!leaves.is_empty(), "Cannot create tree from empty leaves");
+        assert!(
+            leaves.len().is_power_of_two(),
+            "Number of leaves must be power of 2"
+        );
+
+        let mut nodes = vec![leaves.clone()];
+        let mut current_level = leaves.clone();
+
+        while current_level.len() > 1 {
+            let mut next_level = Vec::new();
+            for i in (0..current_level.len()).step_by(2) {
+                let combined = Hash::combine(&current_level[i], &current_level[i + 1]);
+                next_level.push(combined);
+            }
+            nodes.push(next_level.clone());
+            current_level = next_level;
+        }
+
+        current_level[0].clone()
+    }
+
+    pub fn open(&self, index: usize) -> Vec<Hash> {
         assert!(index < self.leaves.len(), "Index out of bounds");
 
         let mut proof = Vec::new();
@@ -56,7 +79,7 @@ impl MerkleTree {
         proof
     }
 
-    pub fn verify_proof(leaf: &Hash, index: usize, proof: &[Hash], root: &Hash) -> bool {
+    pub fn verify(leaf: &Hash, index: usize, proof: &[Hash], root: &Hash) -> bool {
         let mut current = leaf.clone();
         let mut idx = index;
 
@@ -93,13 +116,8 @@ mod tests {
         let tree = MerkleTree::new(&leaves);
 
         for i in 0..leaves.len() {
-            let proof = tree.get_proof(i);
-            assert!(MerkleTree::verify_proof(
-                &leaves[i],
-                i,
-                &proof,
-                tree.get_root()
-            ));
+            let proof = tree.open(i);
+            assert!(MerkleTree::verify(&leaves[i], i, &proof, tree.get_root()));
         }
     }
 
@@ -108,14 +126,9 @@ mod tests {
         let leaves: Vec<Hash> = (0..4).map(|i| Hash::from_bytes(&[i])).collect();
 
         let tree = MerkleTree::new(&leaves);
-        let proof = tree.get_proof(0);
+        let proof = tree.open(0);
 
         let wrong_leaf = Hash::from_bytes(&[99]);
-        assert!(!MerkleTree::verify_proof(
-            &wrong_leaf,
-            0,
-            &proof,
-            tree.get_root()
-        ));
+        assert!(!MerkleTree::verify(&wrong_leaf, 0, &proof, tree.get_root()));
     }
 }
