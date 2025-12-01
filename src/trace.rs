@@ -32,4 +32,19 @@ impl Trace {
             .map(|r| r.iter().map(|&e| field.new_element(e as u64)).collect())
             .collect()
     }
+
+    pub fn fibonacci(length: usize) -> Trace {
+        let mut trace = Vec::new();
+        let mut a = 1i128;
+        let mut b = 1i128;
+
+        for _ in 0..length {
+            trace.push(vec![a]);
+            let next = a + b;
+            a = b;
+            b = next;
+        }
+
+        Trace::new(&trace)
+    }
 }
