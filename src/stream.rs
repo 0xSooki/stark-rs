@@ -62,4 +62,108 @@ impl ProofStream {
         }
         bytes
     }
+
+    pub fn deserialize(bytes: &[u8], field: crate::ff::FiniteField) -> Self {
+        let mut objects = Vec::new();
+        let mut i = 0;
+
+        while i < bytes.len() {
+            let tag = bytes[i];
+            i += 1;
+
+            match tag {
+                0 => {
+                    // MerkleRoot
+                    if i + 32 <= bytes.len() {
+                        let mut hash_bytes = [0u8; 32];
+                        hash_bytes.copy_from_slice(&bytes[i..i + 32]);
+                        objects.push(ProofObject::MerkleRoot(Hash(hash_bytes)));
+                        i += 32;
+                    }
+                }
+                1 => {
+                    // FieldElement
+                    if i + 8 <= bytes.len() {
+                        let val = u64::from_le_bytes([
+                            bytes[i],
+                            bytes[i + 1],
+                            bytes[i + 2],
+                            bytes[i + 3],
+                            bytes[i + 4],
+                            bytes[i + 5],
+                            bytes[i + 6],
+                            bytes[i + 7],
+                        ]);
+                        objects.push(ProofObject::FieldElement(field.new_element(val)));
+                        i += 8;
+                    }
+                }
+                2 => {
+                    // FieldElements
+                    if i + 8 <= bytes.len() {
+                        let len = u64::from_le_bytes([
+                            bytes[i],
+                            bytes[i + 1],
+                            bytes[i + 2],
+                            bytes[i + 3],
+                            bytes[i + 4],
+                            bytes[i + 5],
+                            bytes[i + 6],
+                            bytes[i + 7],
+                        ]) as usize;
+                        i += 8;
+
+                        let mut fes = Vec::new();
+                        for _ in 0..len {
+                            if i + 8 <= bytes.len() {
+                                let val = u64::from_le_bytes([
+                                    bytes[i],
+                                    bytes[i + 1],
+                                    bytes[i + 2],
+                                    bytes[i + 3],
+                                    bytes[i + 4],
+                                    bytes[i + 5],
+                                    bytes[i + 6],
+                                    bytes[i + 7],
+                                ]);
+                                fes.push(field.new_element(val));
+                                i += 8;
+                            }
+                        }
+                        objects.push(ProofObject::FieldElements(fes));
+                    }
+                }
+                3 => {
+                    // MerklePath
+                    if i + 8 <= bytes.len() {
+                        let len = u64::from_le_bytes([
+                            bytes[i],
+                            bytes[i + 1],
+                            bytes[i + 2],
+                            bytes[i + 3],
+                            bytes[i + 4],
+                            bytes[i + 5],
+                            bytes[i + 6],
+                            bytes[i + 7],
+                        ]) as usize;
+                        i += 8;
+
+                        let mut path = Vec::new();
+                        for _ in 0..len {
+                            if i + 32 <= bytes.len() {
+                                let mut hash_bytes = [0u8; 32];
+                                hash_bytes.copy_from_slice(&bytes[i..i + 32]);
+                                path.push(Hash(hash_bytes));
+                                i += 32;
+                            }
+                        }
+                        objects.push(ProofObject::MerklePath(path));
+                    }
+                }
+                _ => break,
+            }
+        }
+
+        ProofStream { objects }
+    }
 }
